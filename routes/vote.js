@@ -32,7 +32,12 @@ function formatResultsBody(pollResults) {
     }, 0);
 
     return pollResults.map((result) => {
-        return `${result.answer_name}: ${Math.round((result.votes / total) * 100)}%`
+        //Account for divide by zero
+        if (total === 0) {
+            return `${result.answer_name}: 0%`
+        } else {
+            return `${result.answer_name}: ${Math.round((result.votes / total) * 100)}%`
+        }
     }).join("\n");
 }
 
