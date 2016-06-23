@@ -10,7 +10,5 @@ DELIMITER $$
         where a.poll_id = p_poll_id
         group by a.id;
 
-        call p_GetPoll(p_poll_id);
-
     END $$
 DELIMITER ;

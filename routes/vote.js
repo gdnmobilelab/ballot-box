@@ -5,6 +5,12 @@ var Promise = require('bluebird');
 var webpush = require('web-push');
 var db = require('mysql-promise')();
 var _ = require('lodash');
+var numeral = require('numeral');
+var AWS = require('aws-sdk');
+
+var sns = new AWS.SNS({
+    region: config.sns.region
+});
 
 db.configure(config.db.ballot);
 
@@ -24,22 +30,35 @@ var INTERNAL_SERVER_ERROR = response(500);
 /**
  * Formats pull results (poll answer + num votes + newline)
  * @param pollResults
+ * @param pollInfo
  * @returns {string}
  */
 function formatResultsBody(pollResults) {
-    var total = pollResults.reduce((coll, result) => {
-        return coll + result.votes;
-    }, 0);
+    var total = countPollResults(pollResults);
+    var resultsBody = '';
 
-    return pollResults.map((result) => {
-        let result;
+    resultsBody += pollResults.map((result) => {
+        var res;
         //Account for divide by zero
         if (total === 0) {
-            result = `${result.answer_name}: 0%`
+            res = `${result.answer_name}: 0%`
         } else {
-            return `${result.answer_name}: ${Math.round((result.votes / total) * 100)}%`
+            res = `${result.answer_name}: ${Math.round((result.votes / total) * 100)}%`
         }
-    }).join("•");
+
+        return res;
+    }).join(" • ");
+
+    resultsBody += '\n';
+    resultsBody += 'Vote Total: ' + numeral(total).format('0,0');
+
+    return resultsBody;
+}
+
+function countPollResults(pollResults) {
+    return pollResults.reduce((coll, result) => {
+        return coll + result.votes;
+    }, 0);
 }
 
 /**
@@ -74,6 +93,14 @@ function pushToUser(user, payload) {
     });
 }
 
+function isThreshold(total, thresholds) {
+    var is = thresholds.find(function(th) {
+        return th.threshold === total;
+    });
+
+    return typeof is != 'undefined';
+}
+
 /**
  * req [object] - request with user's subscription information
  *
@@ -81,7 +108,7 @@ function pushToUser(user, payload) {
  * to get notified about the current poll results.
  */
 router.post('/:pollId/results', function(req, res, next) {
-   db.query('call p_GetPollResults(?)', [req.params.pollId])
+   db.query('call p_GetPollWithResults(?)', [req.params.pollId])
        .then(function(results) {
            //p_GetPollResults has two result sets
            //Result Set 1: Contains the results of the poll (answers and vote counts)
@@ -112,8 +139,22 @@ router.post('/:pollId/vote', function(req, res, next) {
             //Result Set 2: Contains information about the poll (name, question, responses)
             var pollResults = results[0][0];
             var pollInfo = results[0][1][0];
+            var pollThresholds = results[0][2];
+            var total = countPollResults(pollResults);
 
-            return pushToUser(req.body.user, JSON.stringify(templateResponse(formatResultsBody(pollResults), pollInfo.poll_taken_response)));
+            var response = JSON.stringify(templateResponse(formatResultsBody(pollResults), pollInfo.poll_taken_response));
+
+            var shouldSendSNS = isThreshold(total, pollThresholds) && !pollInfo.poll_is_closed;
+            //If we've hit a threshold and our poll is still open
+            if (shouldSendSNS) {
+                console.log('Sending to topic:', pollInfo.poll_sns_topic);
+                sns.publish({
+                    TopicArn: pollInfo.poll_sns_topic,
+                    Message: response
+                });
+            }
+
+            return pushToUser(req.body.user, response);
         }, function(err) {
             console.log(err);
             return Promise.reject();
