@@ -162,8 +162,17 @@ router.post('/:pollId/vote', function(req, res, next) {
         .then(function(result) {
             return OK(res, 'Vote cast!');
         }, function(err) {
-            console.error(err);
-            return BAD_REQUEST(res, 'There was an issue with this request.' );
+            db.query('call p_GetPollWithResults(?)', [req.params.pollId])
+                .then(function(results) {
+                    var pollResults = results[0][0];
+                    var pollInfo = results[0][1][0];
+
+                    pushToUser(req.body.user, JSON.stringify(templateResponse(formatResultsBody(pollResults), pollInfo.poll_not_taken_response)));
+                    return OK(res, 'You already voted, fetching results');
+                }, function(err) {
+                    console.error(err);
+                    return BAD_REQUEST(res, 'There was a problem fetching results');
+                });
         })
         .error(function(error) {
             console.error(err);
