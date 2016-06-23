@@ -47,7 +47,7 @@ function formatResultsBody(pollResults) {
         }
 
         return res;
-    }).join(" • ");
+    }).join(" ");
 
     resultsBody += '\n';
     resultsBody += 'Vote Total: ' + numeral(total).format('0,0');
@@ -94,11 +94,9 @@ function pushToUser(user, payload) {
 }
 
 function isThreshold(total, thresholds) {
-    var is = thresholds.find(function(th) {
+    return thresholds.find(function(th) {
         return th.threshold === total;
     });
-
-    return is;
 }
 
 /**
@@ -145,14 +143,31 @@ router.post('/:pollId/vote', function(req, res, next) {
             var response = JSON.stringify(templateResponse(formatResultsBody(pollResults), pollInfo.poll_taken_response));
             var threshold = isThreshold(total, pollThresholds);
 
+            console.log('Response message:', response);
+
             var shouldSendSNS = typeof threshold !== 'undefined' && !pollInfo.poll_is_closed;
             //If we've hit a threshold and our poll is still open
             if (shouldSendSNS) {
                 console.log('Sending to topic:', pollInfo.poll_sns_topic);
+                var snsResponse = JSON.stringify({
+                    ttl: 60,
+                    payload: templateResponse(formatResultsBody(pollResults), pollInfo.poll_not_taken_response)
+                });
+
+                console.log('SNS message:', snsResponse);
+
+
                 sns.publish({
                     TopicArn: pollInfo.poll_sns_topic,
-                    Message: response
+                    Message: snsResponse
+                }, function(err, data) {
+                    if (err) {
+                        console.log(err, err.stack);
+                    } else {
+                        console.log('Sent notification to topic:', pollInfo.poll_sns_topic, data);
+                    }
                 });
+
                 db.query('call p_LockThreshold(?)', [threshold.id]);
             }
 
@@ -174,6 +189,9 @@ router.post('/:pollId/vote', function(req, res, next) {
                 }, function(err) {
                     console.error(err);
                     return BAD_REQUEST(res, 'There was a problem fetching results');
+                }).error(function(error) {
+                    console.error(err);
+                    return INTERNAL_SERVER_ERROR(res, error.message);
                 });
         })
         .error(function(error) {

@@ -12,7 +12,7 @@ create table if not exists polls (
     poll_not_taken_response JSON,
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now()
-);
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table if not exists poll_thresholds (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -21,7 +21,7 @@ create table if not exists poll_thresholds (
     threshold_locked_on TIMESTAMP NULL,
     created_on TIMESTAMP DEFAULT now(),
     FOREIGN KEY FK_poll_id (poll_id) REFERENCES polls(id)
-);
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table if not exists answers (
 	id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -30,7 +30,7 @@ create table if not exists answers (
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now(),
     FOREIGN KEY FK_poll_id (poll_id) REFERENCES polls(id)
-);
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table if not exists users (
 	id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -38,7 +38,7 @@ create table if not exists users (
     user_subscription JSON,
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now()
-);
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table if not exists users_answers (
     user_id BIGINT,
@@ -50,4 +50,4 @@ create table if not exists users_answers (
     FOREIGN KEY FK_answer_id (answer_id) REFERENCES answers(id),
     FOREIGN KEY FK_poll_id (poll_id) REFERENCES polls(id),
     PRIMARY KEY (user_id, poll_id)
-);
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
