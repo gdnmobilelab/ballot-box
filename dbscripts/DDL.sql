@@ -18,6 +18,7 @@ create table if not exists poll_thresholds (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     threshold INT,
     poll_id BIGINT,
+    threshold_locked_on TIMESTAMP NULL,
     created_on TIMESTAMP DEFAULT now(),
     FOREIGN KEY FK_poll_id (poll_id) REFERENCES polls(id)
 );

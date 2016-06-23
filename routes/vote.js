@@ -98,7 +98,7 @@ function isThreshold(total, thresholds) {
         return th.threshold === total;
     });
 
-    return typeof is != 'undefined';
+    return is;
 }
 
 /**
@@ -143,8 +143,9 @@ router.post('/:pollId/vote', function(req, res, next) {
             var total = countPollResults(pollResults);
 
             var response = JSON.stringify(templateResponse(formatResultsBody(pollResults), pollInfo.poll_taken_response));
+            var threshold = isThreshold(total, pollThresholds);
 
-            var shouldSendSNS = isThreshold(total, pollThresholds) && !pollInfo.poll_is_closed;
+            var shouldSendSNS = typeof threshold !== 'undefined' && !pollInfo.poll_is_closed;
             //If we've hit a threshold and our poll is still open
             if (shouldSendSNS) {
                 console.log('Sending to topic:', pollInfo.poll_sns_topic);
@@ -152,6 +153,7 @@ router.post('/:pollId/vote', function(req, res, next) {
                     TopicArn: pollInfo.poll_sns_topic,
                     Message: response
                 });
+                db.query('call p_LockThreshold(?)', [threshold.id]);
             }
 
             return pushToUser(req.body.user, response);
