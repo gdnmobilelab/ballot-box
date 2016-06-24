@@ -47,10 +47,7 @@ function formatResultsBody(pollResults) {
         }
 
         return res;
-    }).join(" ");
-
-    resultsBody += '\n';
-    resultsBody += 'Vote Total: ' + numeral(total).format('0,0');
+    }).join("\n");
 
     return resultsBody;
 }
@@ -68,11 +65,14 @@ function countPollResults(pollResults) {
  * @param results
  * @param resp
  */
-function templateResponse(results, resp) {
+function templateResponse(results, total, resp) {
     var response = JSON.parse(resp);
     var body = response[0].options.options.body;
+    var title = response[0].options.title;
     body = template({'results': results}, body);
+    title = template({'votes': total}, title);
     response[0].options.options.body = body;
+    response[0].options.title = title;
 
     return response;
 }
@@ -113,8 +113,9 @@ router.post('/:pollId/results', function(req, res, next) {
            //Result Set 2: Contains information about the poll (name, question, responses)
            var pollResults = results[0][0];
            var pollInfo = results[0][1][0];
+           var total = countPollResults(pollResults);
 
-           return pushToUser(req.body.user, JSON.stringify(templateResponse(formatResultsBody(pollResults), pollInfo.poll_not_taken_response)));
+           return pushToUser(req.body.user, JSON.stringify(templateResponse(formatResultsBody(pollResults), total, pollInfo.poll_not_taken_response)));
        })
        .then(function(result) {
            return OK(res, 'Results sent.');
@@ -140,7 +141,7 @@ router.post('/:pollId/vote', function(req, res, next) {
             var pollThresholds = results[0][2];
             var total = countPollResults(pollResults);
 
-            var response = JSON.stringify(templateResponse(formatResultsBody(pollResults), pollInfo.poll_taken_response));
+            var response = JSON.stringify(templateResponse(formatResultsBody(pollResults), total, pollInfo.poll_taken_response));
             var threshold = isThreshold(total, pollThresholds);
 
             console.log('Response message:', response);
@@ -151,11 +152,10 @@ router.post('/:pollId/vote', function(req, res, next) {
                 console.log('Sending to topic:', pollInfo.poll_sns_topic);
                 var snsResponse = JSON.stringify({
                     ttl: 60,
-                    payload: templateResponse(formatResultsBody(pollResults), pollInfo.poll_not_taken_response)
+                    payload: templateResponse(formatResultsBody(pollResults), total, pollInfo.poll_latest_results_response)
                 });
 
                 console.log('SNS message:', snsResponse);
-
 
                 sns.publish({
                     TopicArn: pollInfo.poll_sns_topic,
@@ -169,9 +169,10 @@ router.post('/:pollId/vote', function(req, res, next) {
                 });
 
                 db.query('call p_LockThreshold(?)', [threshold.id]);
+                return Promise.resolve();
+            } else {
+                return pushToUser(req.body.user, response);
             }
-
-            return pushToUser(req.body.user, response);
         }, function(err) {
             console.log(err);
             return Promise.reject();

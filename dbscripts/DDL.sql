@@ -10,6 +10,7 @@ create table if not exists polls (
     poll_sns_topic VARCHAR(500),
     poll_taken_response JSON,
     poll_not_taken_response JSON,
+    poll_latest_results_response JSON,
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now()
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
