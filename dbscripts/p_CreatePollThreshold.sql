@@ -1,7 +1,7 @@
 DELIMITER $$
     create procedure p_CreatePollThreshold(
         IN p_threshold INT,
-        IN p_poll_id BIGINT
+        IN p_poll_id VARCHAR(36)
     )
 
     BEGIN

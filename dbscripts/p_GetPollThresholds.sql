@@ -1,6 +1,6 @@
 DELIMITER $$
     create procedure p_GetPollThresholds(
-        IN p_poll_id BIGINT
+        IN p_poll_id VARCHAR(36)
     )
 
     BEGIN

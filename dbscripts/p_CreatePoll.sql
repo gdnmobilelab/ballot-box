@@ -1,39 +1,39 @@
 DELIMITER $$
     create procedure p_CreatePoll(
-        IN p_id BIGINT,
-        IN p_poll_title VARCHAR(350),
-        IN p_poll_question VARCHAR(100),
-        IN p_poll_is_closed BOOLEAN,
-        IN p_poll_sns_topic VARCHAR(500),
-        IN p_poll_taken_response JSON,
-        IN p_poll_not_taken_response JSON,
-        IN p_poll_latest_results_response JSON
+        IN p_id VARCHAR(36),
+        IN p_question VARCHAR(1000),
+        IN p_icon VARCHAR(2500),
+        IN p_is_closed BOOLEAN,
+        IN p_tag VARCHAR(300),
+        IN p_sns_topic VARCHAR(500),
+        IN p_next_question_text VARCHAR(500),
+        IN p_next_question_icon VARCHAR(2500)
     )
 
     BEGIN
 
-        IF p_id
-        THEN
-            update polls
-            set
-                poll_title              = p_poll_title,
-                poll_question           = p_poll_question,
-                poll_is_closed          = p_poll_is_closed,
-                poll_sns_topic          = p_poll_sns_topic,
-                poll_taken_response     = p_poll_taken_response,
-                poll_not_taken_response = p_poll_taken_response,
-                poll_latest_results_response = p_poll_latest_results_response
-            where id = p_id;
+        insert into polls(
+            id,
+            question,
+            icon,
+            is_closed,
+            tag,
+            sns_topic,
+            next_question_text,
+            next_question_icon
+        )
+        values (
+            p_id,
+            p_question,
+            p_icon,
+            p_is_closed,
+            p_tag,
+            p_sns_topic,
+            p_next_question_text,
+            p_next_question_icon
+        );
 
-            select p_id `id`;
-        ELSE
-            insert into polls(poll_title, poll_question, poll_is_closed,
-                                poll_sns_topic, poll_taken_response, poll_not_taken_response, poll_latest_results_response)
-                values (p_poll_title, p_poll_question, p_poll_is_closed,
-                        p_poll_sns_topic, p_poll_taken_response, p_poll_not_taken_response, p_poll_latest_results_response);
-
-            select LAST_INSERT_ID() `id`;
-        END IF;
+        select p_id `id`;
 
     END $$
 DELIMITER ;

@@ -1,6 +1,6 @@
 DELIMITER $$
     create procedure p_GetPoll(
-        IN p_id BIGINT
+        IN p_id VARCHAR(36)
     )
 
     BEGIN
