@@ -6,9 +6,7 @@ var sns = new AWS.SNS({
 });
 
 var SNSService = {
-    broadcast: function(msg, topic) {
-        return;
-        
+    sendToTopic: function(msg, topic) {
         var snsResponse = JSON.stringify({
             ttl: 60,
             payload: msg
