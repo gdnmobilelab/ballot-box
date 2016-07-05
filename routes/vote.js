@@ -28,7 +28,7 @@ router.post('/:pollId/vote', APIKeyFilter, function(req, res, next) {
 
             //If there's an update response and we have a threshold, send it to erybody
             if (voted.updateResponse && voted.threshold) {
-                PollService.lockThreshold(voted.threshold)
+                PollService.lockThreshold(voted.threshold, voted.poll.id)
                     .then((alreadyLocked) => {
                         if (!alreadyLocked) {
                             SNSService.sendToTopic(PollResponseService.preparePollResponse(voted.updateResponse, voted.poll, voted.results), voted.poll.sns_topic);

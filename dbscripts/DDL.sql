@@ -18,12 +18,12 @@ create table if not exists polls (
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table if not exists poll_thresholds (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
     threshold INT,
     poll_id VARCHAR(36),
     threshold_locked_on TIMESTAMP NULL,
     created_on TIMESTAMP DEFAULT now(),
-    FOREIGN KEY FK_poll_id (poll_id) REFERENCES polls(id)
+    FOREIGN KEY FK_poll_id (poll_id) REFERENCES polls(id),
+    PRIMARY KEY (threshold, poll_id)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table if not exists poll_answers (

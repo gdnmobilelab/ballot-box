@@ -90,8 +90,8 @@ var PollDAO = {
             })
     },
     
-    lockThreshold: function(thresholdId) {
-        return db.query('call p_LockThreshold(?)', [thresholdId])
+    lockThreshold: function(thresholdId, pollId) {
+        return db.query('call p_LockThreshold(?, ?)', [thresholdId, pollId])
             .then(function(results) {
                 return results[0][0][0].was_already_locked
             });

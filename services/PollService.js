@@ -35,8 +35,8 @@ var PollService = {
             })
     },
 
-    lockThreshold: function(threshold) {
-        return PollDAO.lockThreshold(threshold.id);
+    lockThreshold: function(threshold, pollId) {
+        return PollDAO.lockThreshold(threshold.id, pollId);
     }
 };
 
