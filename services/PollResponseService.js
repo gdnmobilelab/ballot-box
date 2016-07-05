@@ -1,10 +1,20 @@
 var util = require('../util/util');
+var TemplatingService = require('./TemplatingService');
 
 
 var PollResponseService = {
     preparePollResponse: function (response, poll, results) {
         var actionCommands = [],
-            opts = {response: response, poll: poll, results: results};
+            opts = {response: response, poll: poll, results: results.map((result) => {
+                var res;
+
+                if (poll.total === 0) {
+                    res = `${result.answer_name}: 0%`
+                } else {
+                    res = `${result.answer_name}: ${Math.round((result.votes / poll.total) * 100)}%`
+                }
+                return res;
+            }).join('\n')};
 
         if (response.response_action_button_one_commands) {
             actionCommands.push({
@@ -35,7 +45,7 @@ var PollResponseService = {
                     "title": TemplatingService.template(response.response_title, opts),
                     "options": {
                         "tag": poll.tag,
-                        "body": TemplatingService.template(response.response_body),
+                        "body": TemplatingService.template(response.response_body, opts),
                         "data": {
                             "onTap": JSON.parse(response.response_on_tap)
                         },
