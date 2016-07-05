@@ -14,7 +14,7 @@ var PollResponseService = {
                     res = `${result.answer_name}: ${Math.round((result.votes / poll.total) * 100)}%`
                 }
                 return res;
-            }).join('\n')};
+            }).join(' ')};
 
         if (response.response_action_button_one_commands) {
             actionCommands.push({
