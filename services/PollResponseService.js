@@ -129,7 +129,7 @@ var PollResponseService = {
                             }
                         ],
                         "template": {
-                            "title": poll.next_question_text,
+                            "title": index === answers.length - 1 ? 'No, start over' : poll.next_question_text,
                             "icon": poll.next_question_icon
                         }
                     }
