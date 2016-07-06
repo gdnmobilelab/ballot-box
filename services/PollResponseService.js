@@ -1,6 +1,7 @@
 var util = require('../util/util');
 var TemplatingService = require('./TemplatingService');
-
+var cache = require('memory-cache');
+var _ = require('lodash');
 
 var PollResponseService = {
     preparePollResponse: function (response, poll, results) {
@@ -59,8 +60,14 @@ var PollResponseService = {
     
     prepareChainResponse: function(p) {
         var poll = p.poll,
-            answers = p.answers,
-            chainResponse = {};
+            answers = _.shuffle(p.answers),
+            chainResponse = {},
+            answersKey = poll.id + answers.map((answer) => { return answer.id }).join('-'),
+            cachedPoll = cache.get(answersKey);
+
+        if (cachedPoll) {
+            return cachedPoll;
+        }
 
         chainResponse.chain = poll.tag;
 
@@ -129,6 +136,8 @@ var PollResponseService = {
                 ]
             }
         });
+
+        cache.put(answersKey, [chainResponse]);
 
         return [chainResponse];
     }
