@@ -1,6 +1,6 @@
-create database if not exists ballotbox;
+create database if not exists ballotboxv2;
 
-use ballotbox;
+use ballotboxv2;
 
 create table if not exists users (
 	id BIGINT AUTO_INCREMENT PRIMARY KEY,

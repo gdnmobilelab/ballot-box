@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "package": "rm dist*.zip && zip -r dist-$(date \"+%Y-%m-%d-%H-%M-%S\").zip app.js bin config config.js package.json routes util .ebextensions"
+    "package": "rm dist*.zip && zip -r dist-$(date \"+%Y-%m-%d-%H-%M-%S\").zip app.js bin config config.js package.json routes util dao services middleware .ebextensions"
   },
   "dependencies": {
     "aws-sdk": "^2.4.1",
@@ -18,7 +18,9 @@
     "lodash": "^4.13.1",
     "memory-cache": "^0.1.6",
     "morgan": "^1.6.1",
+    "mysql": "^2.11.1",
     "mysql-promise": "^3.0.0",
+    "node-mysql": "^0.4.2",
     "numeral": "^1.5.3",
     "redis": "^2.6.2",
     "request": "^2.72.0",

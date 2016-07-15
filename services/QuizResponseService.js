@@ -163,7 +163,7 @@ var QuizResponseService = {
                     icon: quiz.icon,
                     data: {}
                 },
-                actionCommands: actions
+                actions: actions
             }
 
         }));
