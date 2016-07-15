@@ -7,7 +7,7 @@ DELIMITER $$
 
     BEGIN
 
-        insert into poll_users(user_id, user_subscription) values (p_user_id, p_user_subscription);
+        insert into users(user_id, user_subscription) values (p_user_id, p_user_subscription);
 
         SET out_user_id = LAST_INSERT_ID();
 

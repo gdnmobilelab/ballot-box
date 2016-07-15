@@ -11,7 +11,7 @@ DELIMITER $$
         declare v_user_id BIGINT;
         declare v_poll_closed BOOLEAN;
 
-        select id from poll_users where user_id = p_user_id into v_user_exists;
+        select id from users where user_id = p_user_id into v_user_exists;
 
         IF v_user_exists IS NULL THEN
             call p_CreateUser(p_user_id, p_user_subscription, @user_id);

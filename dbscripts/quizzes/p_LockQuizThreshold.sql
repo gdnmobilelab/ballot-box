@@ -1,23 +1,23 @@
 DELIMITER $$
-    create procedure p_LockThreshold(
+    create procedure p_LockQuizThreshold(
         IN p_threshold INT,
-        IN p_poll_id VARCHAR(36)
+        IN p_quiz_id VARCHAR(36)
     )
 
     BEGIN
         declare v_already_locked_on TIMESTAMP;
 
         -- select the next threshold
-        select min(threshold_locked_on) from poll_thresholds pt
-            where pt.threshold > p_threshold
-            and pt.poll_id = p_poll_id
+        select min(threshold_locked_on) from quiz_thresholds qt
+            where qt.threshold > p_threshold
+            and qt.quiz_id = p_quiz_id
             LIMIT 1 into v_already_locked_on;
 
 
         -- lock the threshold
-        update poll_thresholds pt
+        update quiz_thresholds qt
             set threshold_locked_on = NOW()
-            where pt.threshold = p_threshold and pt.poll_id = p_poll_id;
+            where qt.threshold = p_threshold and qt.quiz_id = p_quiz_id;
 
         -- was the next threshold already locked?
         IF v_already_locked_on THEN

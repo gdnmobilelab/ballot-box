@@ -18,9 +18,9 @@ DELIMITER $$
     BEGIN
         declare v_response_type_id BIGINT;
 
-        select id from notification_response_types where type = p_response_type into v_response_type_id;
+        select id from poll_notification_response_types where type = p_response_type into v_response_type_id;
 
-        insert into notification_responses (
+        insert into poll_notification_responses (
             id,
             response_title,
             response_body,

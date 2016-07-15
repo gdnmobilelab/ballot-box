@@ -3,6 +3,7 @@ var router = express.Router();
 var config = require('../config');
 var PollService = require('../services/PollService');
 var PollResponseService = require('../services/PollResponseService');
+var QuizService = require('../services/QuizService');
 var SNSService = require('../services/SNSService');
 var WebPushService = require('../services/WebPushService');
 var APIKeyFilter = require('../middleware/api-key-filter');
@@ -11,14 +12,14 @@ var OK = Responses.OK;
 var BAD_REQUEST = Responses.BAD_REQUEST;
 
 
-router.post('/:pollId/results', APIKeyFilter, function(req, res, next) {
+router.post('/poll/:pollId/results', APIKeyFilter, function(req, res, next) {
     PollService.getPollAndResults(req.params.pollId)
         .then((res) => {
             SNSService.broadcast(PollResponseService.preparePollResponse(voted.response, voted.poll, voted.results))
         })
 });
 
-router.post('/:pollId/vote', APIKeyFilter, function(req, res, next) {
+router.post('/poll/:pollId/vote', APIKeyFilter, function(req, res, next) {
     PollService.vote(req.params.pollId, req.body.answerId, req.body.user)
         .then(function(voted) {
             //If there's a completed response to send, send it to the user
@@ -43,7 +44,7 @@ router.post('/:pollId/vote', APIKeyFilter, function(req, res, next) {
         });
 });
 
-router.get('/:pollId/chain', function(req, res, next) {
+router.get('/poll/:pollId/chain', function(req, res, next) {
     PollService.getPollAndAnswers(req.params.pollId)
         .then((poll) => {
             return PollResponseService.prepareChainResponse(poll);

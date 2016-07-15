@@ -8,7 +8,8 @@ var bodyParser = require('body-parser');
 var config = require('./config');
 var morgan = require('morgan');
 
-var vote = require('./routes/vote');
+var poll = require('./routes/poll');
+var quiz = require('./routes/quiz');
 
 var app = express();
 
@@ -28,7 +29,8 @@ app.use(morgan('combined')); //For logging
 
 app.options('*', cors());
 
-app.use('/polls', vote);
+app.use('/polls', poll);
+app.use('/quizzes', quiz);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
