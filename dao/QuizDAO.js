@@ -76,7 +76,7 @@ var QuizDAO = {
                         return new Promise((answerResolve, answerReject) => {
                             connection.query('call p_AnswerQuizQuestion(?, ?, ?, ?)', [answer.questionId, answer.answerId, user.id, subscription], function (err, result) {
                                 if (err) {
-                                    return answerReject();
+                                    return answerReject(err);
                                 }
 
                                 answerResolve();
@@ -94,9 +94,16 @@ var QuizDAO = {
                             resolve();
                         });
                     }).catch((error) => {
-                        console.log(error);
                         connection.rollback(function () {});
-                        reject(error);
+                        switch (error.code) {
+                            case 'ER_DUP_ENTRY':
+                                //Someone tried voting twice. Roll it back, but don't error out.
+                                resolve();
+                                break;
+                            default:
+                                console.log(error);
+                                reject(error);
+                        }
                     });
                 });
             });

@@ -127,6 +127,7 @@ create table if not exists quiz_users_answers (
     quiz_question_id VARCHAR(36),
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now(),
+    FOREIGN KEY FK_quiz_answer_id (answer_id) REFERENCES quiz_answers(id),
     FOREIGN KEY FK_user_id (user_id) REFERENCES users(id),
     FOREIGN KEY FK_quiz_question_id (quiz_question_id) REFERENCES quiz_questions(id),
     PRIMARY KEY (user_id, quiz_question_id)

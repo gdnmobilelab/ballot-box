@@ -44,17 +44,7 @@ var QuizService = {
                                     return !result.correct_answer
                                 })
                             },
-                            results: {
-                                total: q.quiz_results.reduce((coll, cur) => {
-                                   if (cur.correct_answer) {
-                                       coll.correct += cur.total
-                                   } else {
-                                       coll.incorrect += cur.total;
-                                   }
-
-                                   return coll;
-                                }, {correct: 0, incorrect: 0})
-                            }
+                            results: q.quiz_results
                         });
                 }
             })

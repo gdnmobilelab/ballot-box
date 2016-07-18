@@ -7,6 +7,8 @@ DELIMITER $$
     BEGIN
         declare v_user_id BIGINT;
 
+        drop table if exists total_correct_answers;
+
         select id from users u where u.user_id = p_user_id into v_user_id;
 
         -- Return the quiz
@@ -31,9 +33,7 @@ DELIMITER $$
                 where qa.correct_answer = true
                 group by qua.user_id;
 
-        select total_correct, count(total) from total_correct_answers;
-
-        drop table total_correct_answers;
+        select correct_count, count(correct_count) `num_users` from total_correct_answers group by correct_count;
 
     END $$
 DELIMITER ;

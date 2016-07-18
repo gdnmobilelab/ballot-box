@@ -29,7 +29,10 @@ router.post('/:quizId/submitAnswers', APIKeyFilter, function(req, res, next) {
             return QuizService.getUserQuizResults(req.body.user, req.params.quizId);
         })
         .then((quiz) => {
-            return OK(res, quiz);
+            WebPushService.pushToUser(req.body.user, QuizResponseService.prepareQuizResponse(quiz));
+        })
+        .then((response) => {
+            return OK(res, response);
         })
         .catch((err) => {
             return BAD_REQUEST(res, err);

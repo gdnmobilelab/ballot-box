@@ -11,7 +11,8 @@ DELIMITER $$
         select * from quiz_questions where quiz_id = p_id;
 
         -- Get's the quiz answers
-        select * from quiz_answers qa
+        select qa.id, qa.answer_name, qa.quiz_question_id, qa.correct_answer
+        from quiz_answers qa
         join quiz_questions qq on qq.id = qa.quiz_question_id;
 
 
