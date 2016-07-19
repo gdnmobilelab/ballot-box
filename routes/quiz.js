@@ -35,6 +35,7 @@ router.post('/:quizId/submitAnswers', APIKeyFilter, function(req, res, next) {
             return OK(res, response);
         })
         .catch((err) => {
+            console.log(err);
             return BAD_REQUEST(res, err);
         });
 });

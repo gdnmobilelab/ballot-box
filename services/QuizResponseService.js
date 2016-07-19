@@ -5,10 +5,18 @@ var _ = require('lodash');
 
 var QuizResponseService = {
     prepareQuizResponse: function (quiz) {
-        var users_response = quiz.results.map((results) => {
+        var users_response = quiz.results.num_correct_by_users.map((results) => {
             var multiplePeople = results.num_users === 1 ? 'person' : 'people';
             return `${results.num_users} other ${multiplePeople} answered ${results.correct_count} questions correctly`
-        });
+        }),
+        userPercentageCorrect = Math.round((quiz.user.correct.length / quiz.questions.length) * 100),
+        greaterThanPercentage = quiz.results.num_correct_by_users.reduce((coll, result) => {
+            if (result.correct_count != quiz.user.correct.length) {
+                return coll;
+            } else {
+                return coll + Math.round((result.num_users / quiz.results.total_users)) * 100;
+            }
+        }, 0);
 
         return [
             {
@@ -17,7 +25,7 @@ var QuizResponseService = {
                     "title": quiz.title,
                     "options": {
                         "tag": quiz.tag,
-                        "body": `You answered ${quiz.user.correct.length} questions out of ${quiz.questions.length} correctly.\n${users_response}`,
+                        "body": `You answered ${userPercentageCorrect}% of the questions correctly, so did ${greaterThanPercentage}% of the audience.`,
                         "data": {
                             "onTap": [
                                 {
@@ -156,7 +164,7 @@ var QuizResponseService = {
 
         }));
 
-        cache.put(quiz.id, [chainResponse]);
+        cache.put(quiz.id, [chainResponse], 60 * 5 * 1000);
 
         return [chainResponse];
     }

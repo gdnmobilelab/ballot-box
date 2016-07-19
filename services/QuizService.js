@@ -33,6 +33,10 @@ var QuizService = {
                 if (!q.quiz) {
                     return Promise.reject();
                 } else {
+                    var total_users = q.quiz_results.reduce((coll, result) => {
+                        return coll + result.num_users;
+                    }, 0);
+
                     return _.merge({}, q.quiz,
                         {
                             questions: q.questions,
@@ -44,7 +48,7 @@ var QuizService = {
                                     return !result.correct_answer
                                 })
                             },
-                            results: q.quiz_results
+                            results: { num_correct_by_users: q.quiz_results, total_users: total_users }
                         });
                 }
             })

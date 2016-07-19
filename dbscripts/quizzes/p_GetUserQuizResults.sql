@@ -28,7 +28,7 @@ DELIMITER $$
 
         insert into total_correct_answers (correct_count)
             select sum(qa.correct_answer) as total_correct
-                FROM ballotbox.quiz_users_answers qua
+                FROM quiz_users_answers qua
                 join quiz_answers qa on qua.answer_id = qa.id
                 where qa.correct_answer = true
                 group by qua.user_id;
