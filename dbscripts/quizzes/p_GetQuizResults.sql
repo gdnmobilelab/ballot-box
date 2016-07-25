@@ -1,5 +1,5 @@
 DELIMITER $$
-    create procedure p_GetUserQuizResults(
+    create procedure p_GetQuizResults(
         IN p_user_id VARCHAR(2500),
         IN p_quiz_id VARCHAR(36)
     )
@@ -15,12 +15,13 @@ DELIMITER $$
         select * from quizzes where id = p_quiz_id;
 
         -- Return the quiz questions
-        select * from quiz_questions where quiz_id = p_quiz_id;
+        select * from quiz_questions qq
+        where qq.quiz_id = p_quiz_id;
 
-        -- Return the user's results
-        select * from quiz_users_answers qua
-        join quiz_answers qa on qua.answer_id = qa.id
-        where qua.user_id = v_user_id;
+        -- Return the quiz answers
+        select answer.* from quiz_answers answer
+        join quiz_questions question on answer.quiz_question_id = question.id
+        where question.quiz_id = p_quiz_id;
 
         create temporary table total_correct_answers (
             correct_count BIGINT

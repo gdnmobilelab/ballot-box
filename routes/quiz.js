@@ -25,8 +25,33 @@ router.get('/:quizId/chain', function(req, res, next) {
 
 router.post('/:quizId/submitAnswers', APIKeyFilter, function(req, res, next) {
     QuizService.submitAnswers(req.body.answers, req.body.user)
-        .then(() => {
-            return QuizService.getUserQuizResults(req.body.user, req.params.quizId);
+        .then((result) => {
+            return QuizService.getQuizResults(req.body.user, req.params.quizId, result.sessionId);
+        })
+        .then((quizResults) => {
+            var answers = quizResults.answers.reduce((coll, answer) => {
+                if (answer.correct_answer) {
+                    coll['correct'] = coll['correct'].concat([answer.id]);
+                } else {
+                    coll['incorrect'] = coll['incorrect'].concat([answer.id]);
+                }
+
+                return coll;
+            }, {
+                correct: [],
+                incorrect: []
+            });
+
+            quizResults.user = {
+                correct: req.body.answers.filter((answer) => {
+                    return answers.correct.indexOf(answer.answerId) >= 0
+                }),
+                incorrect: req.body.answers.filter((answer) => {
+                    return answers.incorrect.indexOf(answer.answerId) >= 0
+                }),
+            };
+
+            return quizResults;
         })
         .then((quiz) => {
             WebPushService.pushToUser(req.body.user, QuizResponseService.prepareQuizResponse(quiz));

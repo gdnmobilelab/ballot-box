@@ -3,7 +3,6 @@ var db = require('mysql-promise')();
 var mysql = require('mysql');
 var Promise = require('bluebird');
 var pool = mysql.createPool(config.db.ballot);
-
 db.configure(config.db.ballot);
 
 var QuizDAO = {
@@ -91,14 +90,14 @@ var QuizDAO = {
                                 });
                             }
 
-                            resolve();
+                            resolve({already_taken: false});
                         });
                     }).catch((error) => {
                         connection.rollback(function () {});
                         switch (error.code) {
                             case 'ER_DUP_ENTRY':
                                 //Someone tried voting twice. Roll it back, but don't error out.
-                                resolve();
+                                resolve({already_taken: true});
                                 break;
                             default:
                                 console.log(error);
@@ -116,13 +115,13 @@ var QuizDAO = {
         });
     },
 
-    getUserQuizResults: function(user, quizId) {
-        return db.query('call p_GetUserQuizResults(?, ?)', [user.id, quizId])
+    getQuizResults: function(user, quizId, sessionId) {
+        return db.query('call p_GetQuizResults(?, ?)', [user.id, quizId])
             .then((results) => {
                 return {
                     quiz: results[0][0][0],
                     questions: results[0][1],
-                    user_results: results[0][2],
+                    answers: results[0][2],
                     quiz_results: results[0][3]
                 }
             })

@@ -14,6 +14,7 @@ create table if not exists users (
 
 create table if not exists polls (
     id VARCHAR(36) PRIMARY KEY,
+    title VARCHAR(500),
     question VARCHAR(1000),
     icon VARCHAR(2500),
     is_closed BOOLEAN,
@@ -21,6 +22,7 @@ create table if not exists polls (
     sns_topic VARCHAR(500),
     next_question_text VARCHAR(500),
     next_question_icon VARCHAR(2500),
+    on_tap JSON,
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now()
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -35,7 +37,7 @@ create table if not exists poll_thresholds (
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create table if not exists poll_answers (
-	id BIGINT AUTO_INCREMENT PRIMARY KEY,
+	id VARCHAR(36) PRIMARY KEY,
     answer_name VARCHAR(350),
     poll_id VARCHAR(36),
     created_on TIMESTAMP DEFAULT now(),
@@ -45,7 +47,7 @@ create table if not exists poll_answers (
 
 create table if not exists poll_users_answers (
     user_id BIGINT,
-    answer_id BIGINT,
+    answer_id VARCHAR(36),
     poll_id VARCHAR(36),
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now(),
@@ -98,6 +100,7 @@ create table if not exists quizzes (
     is_closed BOOLEAN,
     tag VARCHAR(300),
     sns_topic VARCHAR(500),
+    on_tap JSON,
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now()
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -123,8 +126,8 @@ create table if not exists quiz_answers (
 
 create table if not exists quiz_users_answers (
     user_id BIGINT,
-    answer_id VARCHAR(36),
-    quiz_question_id VARCHAR(36),
+    answer_id VARCHAR(36) NOT NULL,
+    quiz_question_id VARCHAR(36) NOT NULL,
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now(),
     FOREIGN KEY FK_quiz_answer_id (answer_id) REFERENCES quiz_answers(id),

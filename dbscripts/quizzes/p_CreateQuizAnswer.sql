@@ -7,19 +7,30 @@ DELIMITER $$
     )
 
     BEGIN
+        declare v_quiz_answer_exists_id VARCHAR(36);
 
-        insert into quiz_answers(
-            id,
-            answer_name,
-            correct_answer,
-            quiz_question_id
-        )
-        values (
-            p_id,
-            p_answer_name,
-            p_correct_answer,
-            p_quiz_question_id
-        );
+        select id from quiz_answers where id = p_id into v_quiz_answer_exists_id;
+
+        IF v_quiz_answer_exists_id IS NOT NULL THEN
+            update quiz_answers set
+                answer_name = p_answer_name,
+                correct_answer = p_correct_answer,
+                quiz_question_id = p_quiz_question_id
+            where id = p_id;
+        ELSE
+            insert into quiz_answers(
+                id,
+                answer_name,
+                correct_answer,
+                quiz_question_id
+            )
+            values (
+                p_id,
+                p_answer_name,
+                p_correct_answer,
+                p_quiz_question_id
+            );
+        END IF;
 
         select p_id `id`;
 

@@ -26,8 +26,8 @@ var QuizService = {
         return QuizDAO.answerQuiz(answers, user);
     },
 
-    getUserQuizResults: function(user, quizId) {
-        return QuizDAO.getUserQuizResults(user, quizId)
+    getQuizResults: function(user, quizId, sessionId) {
+        return QuizDAO.getQuizResults(user, quizId, sessionId)
             .then(function(q) {
                 //No quiz
                 if (!q.quiz) {
@@ -39,15 +39,8 @@ var QuizService = {
 
                     return _.merge({}, q.quiz,
                         {
+                            answers: q.answers,
                             questions: q.questions,
-                            user: {
-                                correct: q.user_results.filter((result) => {
-                                    return result.correct_answer
-                                }),
-                                incorrect: q.user_results.filter((result) => {
-                                    return !result.correct_answer
-                                })
-                            },
                             results: { num_correct_by_users: q.quiz_results, total_users: total_users }
                         });
                 }

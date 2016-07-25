@@ -5,27 +5,25 @@ var _ = require('lodash');
 
 var QuizResponseService = {
     prepareQuizResponse: function (quiz) {
-        var users_response = quiz.results.num_correct_by_users.map((results) => {
-            var multiplePeople = results.num_users === 1 ? 'person' : 'people';
-            return `${results.num_users} other ${multiplePeople} answered ${results.correct_count} questions correctly`
-        }),
-        userPercentageCorrect = Math.round((quiz.user.correct.length / quiz.questions.length) * 100),
-        greaterThanPercentage = quiz.results.num_correct_by_users.reduce((coll, result) => {
-            if (result.correct_count != quiz.user.correct.length) {
-                return coll;
-            } else {
-                return coll + Math.round((result.num_users / quiz.results.total_users)) * 100;
-            }
-        }, 0);
+        var numCorrectByUsers = [];
+
+        for (var i = 0; i < quiz.questions.length + 1; i++) {
+            var countExists = quiz.results.num_correct_by_users.find((n) => n.correct_count === i);
+            numCorrectByUsers.push(countExists || {num_users: 0, correct_count: i});
+        }
+
+        var users_response = numCorrectByUsers.map((results) => {
+            return `${Math.round((results.num_users / quiz.results.total_users) * 100)}% scored ${results.correct_count}/${quiz.questions.length}`
+        }).join('\n');
 
         return [
             {
                 "command": "notification.show",
                 "options": {
-                    "title": quiz.title,
+                    "title": `Total responses: ${quiz.results.total_users}`,
                     "options": {
                         "tag": quiz.tag,
-                        "body": `You answered ${userPercentageCorrect}% of the questions correctly, so did ${greaterThanPercentage}% of the audience.`,
+                        "body": `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n${users_response}`,
                         "data": {
                             "onTap": [
                                 {
@@ -91,17 +89,17 @@ var QuizResponseService = {
                             "title": "Start"
                         }
                     },
-                    {
-                        "label": "web-link",
-                        "commands": [
-                            {
-                                "command": "notification.close"
-                            }
-                        ],
-                        "template": {
-                            "title": "Close"
-                        }
-                    }
+                    // {
+                    //     "label": "web-link",
+                    //     "commands": [
+                    //         {
+                    //             "command": "notification.close"
+                    //         }
+                    //     ],
+                    //     "template": {
+                    //         "title": "Close"
+                    //     }
+                    // }
                 ]
             }
         ];
@@ -126,12 +124,17 @@ var QuizResponseService = {
                 );
 
                 if (last) {
-                    commands.push({
-                        "command": "quiz.submitAnswers",
-                        "options": {
-                            "quizId": quiz.id
+                    commands = commands.concat([
+                        {
+                            "command": "quiz.submitAnswers",
+                            "options": {
+                                "quizId": quiz.id
+                            }
+                        },
+                        {
+                            "command": "notification.close"
                         }
-                    })
+                    ]);
                 } else {
                     commands.push({
                         "command": "chains.notificationAtIndex",

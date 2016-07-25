@@ -71,37 +71,20 @@ var PollResponseService = {
 
         chainResponse.chain = poll.tag;
 
-        chainResponse.values = answers.map((answer, index) => {
-            var commands = [];
-
-            //If this poll has an sns topic, subscribe user's to it
-            //when they answer
-            if (poll.sns_topic) {
-                commands.push(
-                    {
-                        "command": "pushy.subscribeToTopic",
-                        "options": {
-                            "topic": util.topicFromSNSARN(poll.sns_topic)
-                        }
-                    }
-                )
-            }
-
-            //Add the cast vote and close actions
-            commands.concat([
+        if (answers.length < 3) {
+            var subscribeAndCloseCommand = [
                 {
-                    "command": "poll.castVote",
+                    "command": "pushy.subscribeToTopic",
                     "options": {
-                        "pollId": poll.id,
-                        "answerId": answer.id
+                        "topic": util.topicFromSNSARN(poll.sns_topic)
                     }
                 },
                 {
                     "command": "notification.close"
                 }
-            ]);
+            ];
 
-            return {
+            chainResponse.values = [{
                 title: poll.title,
                 notificationTemplate: {
                     body: poll.question,
@@ -112,30 +95,103 @@ var PollResponseService = {
                 actions: [
                     {
                         "label": "web-link",
-                        "commands": commands,
+                        "commands": [
+                            {
+                                "command": "poll.castVote",
+                                "options": {
+                                    "pollId": poll.id,
+                                    "answerId": answers[0].id
+                                }
+                            }
+                        ].concat(subscribeAndCloseCommand),
                         "template": {
-                            "title": answer.answer_name
+                            "title": answers[0].answer_name
                         }
                     },
                     {
                         "label": "web-link",
                         "commands": [
                             {
-                                "command": "chains.notificationAtIndex",
+                                "command": "poll.castVote",
                                 "options": {
-                                    "chain": poll.tag,
-                                    "index": index === answers.length - 1 ? 0 : index + 1 //If last, cycle
+                                    "pollId": poll.id,
+                                    "answerId": answers[1].id
                                 }
                             }
-                        ],
+                        ].concat(subscribeAndCloseCommand),
                         "template": {
-                            "title": index === answers.length - 1 ? 'No, start over' : poll.next_question_text,
-                            "icon": poll.next_question_icon
+                            "title": answers[1].answer_name
                         }
-                    }
+                    },
                 ]
-            }
-        });
+            }];
+        } else {
+            chainResponse.values = answers.map((answer, index) => {
+                var commands = [];
+
+                //If this poll has an sns topic, subscribe user's to it
+                //when they answer
+                if (poll.sns_topic) {
+                    commands.push(
+                        {
+                            "command": "pushy.subscribeToTopic",
+                            "options": {
+                                "topic": util.topicFromSNSARN(poll.sns_topic)
+                            }
+                        }
+                    )
+                }
+
+                //Add the cast vote and close actions
+                commands.concat([
+                    {
+                        "command": "poll.castVote",
+                        "options": {
+                            "pollId": poll.id,
+                            "answerId": answer.id
+                        }
+                    },
+                    {
+                        "command": "notification.close"
+                    }
+                ]);
+
+                return {
+                    title: poll.title,
+                    notificationTemplate: {
+                        body: poll.question,
+                        tag: poll.tag,
+                        icon: poll.icon,
+                        data: {}
+                    },
+                    actions: [
+                        {
+                            "label": "web-link",
+                            "commands": commands,
+                            "template": {
+                                "title": answer.answer_name
+                            }
+                        },
+                        {
+                            "label": "web-link",
+                            "commands": [
+                                {
+                                    "command": "chains.notificationAtIndex",
+                                    "options": {
+                                        "chain": poll.tag,
+                                        "index": index === answers.length - 1 ? 0 : index + 1 //If last, cycle
+                                    }
+                                }
+                            ],
+                            "template": {
+                                "title": index === answers.length - 1 ? 'No, start over' : poll.next_question_text,
+                                "icon": poll.next_question_icon
+                            }
+                        }
+                    ]
+                }
+            });
+        }
 
         cache.put(answersKey, [chainResponse]);
 
