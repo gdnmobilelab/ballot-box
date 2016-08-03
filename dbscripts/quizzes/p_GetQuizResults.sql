@@ -31,7 +31,8 @@ DELIMITER $$
             select sum(qa.correct_answer) as total_correct
                 FROM quiz_users_answers qua
                 join quiz_answers qa on qua.answer_id = qa.id
-                where qa.correct_answer = true
+                join quiz_questions question on qa.quiz_question_id = question.id
+                where question.quiz_id = p_quiz_id
                 group by qua.user_id;
 
         select correct_count, count(correct_count) `num_users` from total_correct_answers group by correct_count;

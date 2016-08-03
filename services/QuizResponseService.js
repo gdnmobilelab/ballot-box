@@ -16,6 +16,16 @@ var QuizResponseService = {
             return `${Math.round((results.num_users / quiz.results.total_users) * 100)}% scored ${results.correct_count}/${quiz.questions.length}`
         }).join('\n');
 
+        var onTap = [
+            {
+                "command": "notification.close"
+            }
+        ];
+
+        if (quiz.on_tap) {
+            onTap = onTap.concat(quiz.on_tap);
+        }
+
         return [
             {
                 "command": "notification.show",
@@ -25,11 +35,7 @@ var QuizResponseService = {
                         "tag": quiz.tag,
                         "body": `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n${users_response}`,
                         "data": {
-                            "onTap": [
-                                {
-                                    "command": "notification.close"
-                                }
-                            ]
+                            "onTap": onTap
                         },
                         "icon": quiz.icon
                     },
@@ -43,6 +49,21 @@ var QuizResponseService = {
                             ],
                             "template": {
                                 "title": "Close"
+                            }
+                        },
+                        {
+                            "label": "web-link",
+                            "commands": [
+                                {
+                                    "command": "chains.notificationAtIndex",
+                                    "options": {
+                                        "chain": quiz.tag,
+                                        "index": 1
+                                    }
+                                }
+                            ],
+                            "template": {
+                                "title": "Retake quiz"
                             }
                         }
                     ]
@@ -111,39 +132,30 @@ var QuizResponseService = {
             var actions = answers.map((answer) => {
                 var commands = [];
 
-                //Add the cast vote and close actions
-                commands.push(
-                    {
-                        "command": "quiz.answerQuestion",
-                        "options": {
-                            "quizId": quiz.id,
-                            "questionId": question.id,
-                            "answerId": answer.id
-                        }
+                let answerQuestion =  {
+                    "command": "quiz.answerQuestion",
+                    "options": {
+                        "chain": quiz.tag,
+                        "quizId": quiz.id,
+                        "questionId": question.id,
+                        "answerId": answer.id,
+                        "nextText": "Results",
+                        "trueOrFalse": answer.correct_answer ? 'Correct' : 'Incorrect'
                     }
-                );
+                };
 
-                if (last) {
-                    commands = commands.concat([
-                        {
-                            "command": "quiz.submitAnswers",
-                            "options": {
-                                "quizId": quiz.id
-                            }
-                        },
-                        {
-                            "command": "notification.close"
-                        }
-                    ]);
-                } else {
-                    commands.push({
-                        "command": "chains.notificationAtIndex",
-                        "options": {
-                            "chain": quiz.tag,
-                            "index": questionIndex + 2
-                        }
-                    })
+                if (!last) {
+                    answerQuestion.options.nextText = 'Next question';
+                    answerQuestion.options.index = questionIndex + 2;
                 }
+
+                //Add the cast vote and close actions
+                commands = commands.concat([
+                    answerQuestion,
+                    {
+                        "command": "notification.close"
+                    }
+                ]);
 
                 return  {
                     "label": "web-link",
@@ -155,7 +167,7 @@ var QuizResponseService = {
             });
 
             return {
-                title: quiz.title,
+                title: `Question #${questionIndex + 1}`,
                 notificationTemplate: {
                     body: question.question,
                     tag: quiz.tag,

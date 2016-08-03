@@ -15,13 +15,16 @@ var QuizDAO = {
     answerQuestion: function(answerId, user) {
         return db.query('call p_AnswerQuizQuestion(?, ?, ?, ?)', [answerId, user.id, JSON.stringify(user.subscription)])
             .then(function(results) {
+                var quiz = results[0][0][0];
+
+                quiz.on_tap = quiz.on_tap ? JSON.parse(quiz.on_tap) : null;
                 //p_AnswerQuizQuestion has four result sets
                 //Result Set 1: Contains information about the quiz (name, question, responses)
                 //Result Set 2: Contains the results of the quiz (answers and vote counts)
                 //Result Set 3: Contains the response template
                 //Result Set 4: Contains information about the poll thresholds
                 return {
-                    quiz: results[0][0][0],
+                    quiz: quiz,
                     results: results[0][1],
                     completedResponse: results[0][2][0],
                     updateResponse: results[0][3][0],
@@ -46,12 +49,15 @@ var QuizDAO = {
     getQuizWithQuestionAnswers: function(quizId) {
         return db.query('call p_GetQuizQuestionsAndAnswers(?)', [quizId])
             .then(function(results) {
+                var quiz = results[0][0][0];
+
+                quiz.on_tap = quiz.on_tap ? JSON.parse(quiz.on_tap) : null;
                 //p_GetQuizQuestionsAnswers has three result sets
                 //Result Set 1: Contains information about the quiz
                 //Result Set 2: Contains information about quiz questions
                 //Result Set 3: Contains information about quiz question answers
                 return {
-                    quiz: results[0][0][0],
+                    quiz: quiz,
                     questions: results[0][1],
                     answers: results[0][2]
                 };
@@ -118,8 +124,12 @@ var QuizDAO = {
     getQuizResults: function(user, quizId, sessionId) {
         return db.query('call p_GetQuizResults(?, ?)', [user.id, quizId])
             .then((results) => {
+                var quiz = results[0][0][0];
+
+                quiz.on_tap = quiz.on_tap ? JSON.parse(quiz.on_tap) : null;
+
                 return {
-                    quiz: results[0][0][0],
+                    quiz: quiz,
                     questions: results[0][1],
                     answers: results[0][2],
                     quiz_results: results[0][3]
