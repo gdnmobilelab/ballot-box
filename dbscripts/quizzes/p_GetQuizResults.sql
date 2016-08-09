@@ -23,19 +23,22 @@ DELIMITER $$
         join quiz_questions question on answer.quiz_question_id = question.id
         where question.quiz_id = p_quiz_id;
 
-        create temporary table total_correct_answers (
-            correct_count BIGINT
-        );
+        select * from quiz_result_responses
+            where quiz_id = p_quiz_id;
 
-        insert into total_correct_answers (correct_count)
-            select sum(qa.correct_answer) as total_correct
-                FROM quiz_users_answers qua
-                join quiz_answers qa on qua.answer_id = qa.id
-                join quiz_questions question on qa.quiz_question_id = question.id
-                where question.quiz_id = p_quiz_id
-                group by qua.user_id;
-
-        select correct_count, count(correct_count) `num_users` from total_correct_answers group by correct_count;
+--        create temporary table total_correct_answers (
+--            correct_count BIGINT
+--        );
+--
+--        insert into total_correct_answers (correct_count)
+--            select sum(qa.correct_answer) as total_correct
+--                FROM quiz_users_answers qua
+--                join quiz_answers qa on qua.answer_id = qa.id
+--                join quiz_questions question on qa.quiz_question_id = question.id
+--                where question.quiz_id = p_quiz_id
+--                group by qua.user_id;
+--
+--        select correct_count, count(correct_count) `num_users` from total_correct_answers group by correct_count;
 
     END $$
 DELIMITER ;

@@ -132,7 +132,8 @@ var QuizDAO = {
                     quiz: quiz,
                     questions: results[0][1],
                     answers: results[0][2],
-                    quiz_results: results[0][3]
+                    responses: results[0][3]
+                    // quiz_results: results[0][3]
                 }
             })
     }

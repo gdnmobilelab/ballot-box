@@ -2,6 +2,7 @@ DELIMITER $$
     create procedure p_CreateQuizQuestion(
         IN p_id VARCHAR(36),
         IN p_question VARCHAR(1500),
+        IN p_icon VARCHAR(2500),
         IN p_quiz_id VARCHAR(36)
     )
 
@@ -13,17 +14,20 @@ DELIMITER $$
         IF v_quiz_question_exists_id IS NOT NULL THEN
             update quiz_questions set
                 question = p_question,
+                icon = p_alert_icon,
                 quiz_id = p_quiz_id
             where id = p_id;
         ELSE
             insert into quiz_questions(
                 id,
                 question,
+                icon,
                 quiz_id
             )
             values (
                 p_id,
                 p_question,
+                p_icon,
                 p_quiz_id
             );
         END IF;

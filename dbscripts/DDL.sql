@@ -58,7 +58,6 @@ create table if not exists poll_users_answers (
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -- Notification Related -----
-
 create table if not exists poll_notification_response_types (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     type VARCHAR(100)
@@ -108,6 +107,7 @@ create table if not exists quizzes (
 create table if not exists quiz_questions (
 	id VARCHAR(36) PRIMARY KEY,
     question VARCHAR(1500),
+    icon VARCHAR(2500),
     quiz_id VARCHAR(36),
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now(),
@@ -137,33 +137,12 @@ create table if not exists quiz_users_answers (
     PRIMARY KEY (user_id, quiz_question_id)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-create table if not exists quiz_notification_response_types (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    type VARCHAR(100)
-) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-INSERT into quiz_notification_response_types(id, type) VALUES
-(1, 'QUIZ_COMPLETED'),
-(2, 'QUIZ_SKIPPED'),
-(3, 'QUIZ_UPDATE');
-
-create table if not exists quiz_notification_responses (
-    id VARCHAR(36),
-    response_title VARCHAR(350),
-    response_body VARCHAR(1000),
-    response_on_tap JSON,
-    response_on_close JSON,
-    response_action_button_one_commands JSON,
-    response_action_button_one_text VARCHAR(100),
-    response_action_button_one_icon VARCHAR(250),
-    response_action_button_two_commands JSON,
-    response_action_button_two_text VARCHAR(100),
-    response_action_button_two_icon VARCHAR(250),
-    response_type BIGINT,
+create table if not exists quiz_result_responses (
     quiz_id VARCHAR(36),
+    number_answered_correctly INT NOT NULL,
+    response VARCHAR(500) NOT NULL
     FOREIGN KEY FK_quiz_id (quiz_id) REFERENCES quizzes(id),
-    FOREIGN KEY FK_response_type (response_type) REFERENCES poll_notification_response_types(id),
-    PRIMARY KEY (id, response_type, quiz_id)
+    PRIMARY KEY (quiz_id, number_answered_correctly)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------

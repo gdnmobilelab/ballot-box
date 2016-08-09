@@ -5,14 +5,6 @@ var config = require('../config');
 
 var QuizResponseService = {
     prepareQuizResponse: function (quiz) {
-        var numCorrectByUsers = [];
-
-        var countExists;
-        for (var i = 0; i < quiz.questions.length + 1; i++) {
-            countExists = quiz.results.num_correct_by_users.find((n) => n.correctCount === i);
-            numCorrectByUsers.push(countExists || {num_users: 0, correctCount: i});
-        }
-
         var onTap = [
             {
                 "command": "notification.close"
@@ -23,26 +15,13 @@ var QuizResponseService = {
             onTap = onTap.concat(quiz.on_tap);
         }
 
-        var body = `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n\n`;
-        var userBetterThan = numCorrectByUsers.reduce((coll, numUserCorrect) => {
-            if (numUserCorrect.correctCount < quiz.user.correct.length) {
-                coll += Math.round((numUserCorrect.num_users / quiz.results.total_users) * 100);
-            }
-
-            return coll;
-        }, 0);
-
-        if (quiz.user.correct.length === 0) {
-            body += 'Better luck next time!';
-        } else {
-            body += `You scored better than ${userBetterThan}% of people.`;
-        }
+        var body = `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n\n${quiz.responses[quiz.user.correct.length]}`;
 
         return [
             {
                 "command": "notification.show",
                 "options": {
-                    "title": `Total responses: ${quiz.results.total_users}`,
+                    "title": `${quiz.title} Results`,
                     "options": {
                         "tag": quiz.tag,
                         "body": body,
@@ -123,7 +102,7 @@ var QuizResponseService = {
                             }
                         ],
                         "template": {
-                            "title": "Start"
+                            "title": "Start Quiz ➡️"
                         }
                     },
                     // {
@@ -191,7 +170,7 @@ var QuizResponseService = {
                 notificationTemplate: {
                     body: question.question,
                     tag: quiz.tag,
-                    icon: quiz.icon,
+                    icon: question.icon || quiz.icon,
                     data: {}
                 },
                 actions: actions
