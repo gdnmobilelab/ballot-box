@@ -3,7 +3,6 @@ var router = express.Router();
 var config = require('../config');
 var QuizService = require('../services/QuizService');
 var QuizResponseService = require('../services/QuizResponseService');
-var SNSService = require('../services/SNSService');
 var WebPushService = require('../services/WebPushService');
 var APIKeyFilter = require('../middleware/api-key-filter');
 var Responses = require('./RouteResponses');

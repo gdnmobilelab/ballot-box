@@ -118,6 +118,7 @@ create table if not exists quiz_answers (
 	id VARCHAR(36) PRIMARY KEY,
     answer_name VARCHAR(350),
     quiz_question_id VARCHAR(36),
+    answer_text VARCHAR(1000),
     correct_answer BOOLEAN,
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now(),

@@ -1,20 +1,17 @@
 var util = require('../util/util');
 var TemplatingService = require('./TemplatingService');
 var cache = require('memory-cache');
-var _ = require('lodash');
+var config = require('../config');
 
 var QuizResponseService = {
     prepareQuizResponse: function (quiz) {
         var numCorrectByUsers = [];
 
+        var countExists;
         for (var i = 0; i < quiz.questions.length + 1; i++) {
-            var countExists = quiz.results.num_correct_by_users.find((n) => n.correct_count === i);
-            numCorrectByUsers.push(countExists || {num_users: 0, correct_count: i});
+            countExists = quiz.results.num_correct_by_users.find((n) => n.correctCount === i);
+            numCorrectByUsers.push(countExists || {num_users: 0, correctCount: i});
         }
-
-        var users_response = numCorrectByUsers.map((results) => {
-            return `${Math.round((results.num_users / quiz.results.total_users) * 100)}% scored ${results.correct_count}/${quiz.questions.length}`
-        }).join('\n');
 
         var onTap = [
             {
@@ -26,6 +23,21 @@ var QuizResponseService = {
             onTap = onTap.concat(quiz.on_tap);
         }
 
+        var body = `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n\n`;
+        var userBetterThan = numCorrectByUsers.reduce((coll, numUserCorrect) => {
+            if (numUserCorrect.correctCount < quiz.user.correct.length) {
+                coll += Math.round((numUserCorrect.num_users / quiz.results.total_users) * 100);
+            }
+
+            return coll;
+        }, 0);
+
+        if (quiz.user.correct.length === 0) {
+            body += 'Better luck next time!';
+        } else {
+            body += `You scored better than ${userBetterThan}% of people.`;
+        }
+
         return [
             {
                 "command": "notification.show",
@@ -33,7 +45,7 @@ var QuizResponseService = {
                     "title": `Total responses: ${quiz.results.total_users}`,
                     "options": {
                         "tag": quiz.tag,
-                        "body": `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n${users_response}`,
+                        "body": body,
                         "data": {
                             "onTap": onTap
                         },
@@ -44,11 +56,15 @@ var QuizResponseService = {
                             "label": "web-link",
                             "commands": [
                                 {
-                                    "command": "notification.close"
+                                    "command": "browser.openURL",
+                                    "options": {
+                                        // "url": `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURI(`https://twitter.com/share?url=${config.mobileLabURL}&text=I got ${quiz.user.correct.length}/${quiz.questions.length} correct on ${quiz.title};end`)}`
+                                        "url": `https://twitter.com/share?url=${config.mobileLabURL}&text=${encodeURI(`I got ${quiz.user.correct.length}/${quiz.questions.length} correct on ${quiz.title}`)}`
+                                    }
                                 }
                             ],
                             "template": {
-                                "title": "Close"
+                                "title": "Tweet"
                             }
                         },
                         {
@@ -130,9 +146,16 @@ var QuizResponseService = {
                 last = questionIndex === questions.length - 1;
 
             var actions = answers.map((answer) => {
-                var commands = [];
+                var commands = [],
+                    answerText;
 
-                let answerQuestion =  {
+                if (answer.answer_text) {
+                    answerText = answer.answer_text;
+                } else {
+                    answerText = answer.correct_answer ? 'Correct' : 'Incorrect';
+                }
+
+                var answerQuestion =  {
                     "command": "quiz.answerQuestion",
                     "options": {
                         "chain": quiz.tag,
@@ -140,7 +163,7 @@ var QuizResponseService = {
                         "questionId": question.id,
                         "answerId": answer.id,
                         "nextText": "Results",
-                        "trueOrFalse": answer.correct_answer ? 'Correct' : 'Incorrect'
+                        "trueOrFalse": answerText
                     }
                 };
 
@@ -151,10 +174,7 @@ var QuizResponseService = {
 
                 //Add the cast vote and close actions
                 commands = commands.concat([
-                    answerQuestion,
-                    {
-                        "command": "notification.close"
-                    }
+                    answerQuestion
                 ]);
 
                 return  {
@@ -174,7 +194,7 @@ var QuizResponseService = {
                     icon: quiz.icon,
                     data: {}
                 },
-                actionCommands: actions
+                actions: actions
             }
 
         }));
