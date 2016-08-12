@@ -225,6 +225,8 @@ var QuizResponseService = {
                             "quizId": quiz.id,
                             "questionId": question.id,
                             "answerId": answer.id,
+                            "nextText": "Results",
+                            "trueOrFalse": answerText,
                             "showNotification": {
                                 title: `${title}: ${correctOrIncorrect}`,
                                 options: {
