@@ -4,6 +4,69 @@ var cache = require('memory-cache');
 var config = require('../config');
 
 var QuizResponseService = {
+    prepareQuizResponse: function (quiz) {
+        var onTap = [
+            {
+                "command": "notification.close"
+            }
+        ];
+
+        if (quiz.on_tap) {
+            onTap = onTap.concat(quiz.on_tap);
+        }
+
+        var body = `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n\n${quiz.responses[quiz.user.correct.length]}`;
+
+        return [
+            {
+                "command": "notification.show",
+                "options": {
+                    "title": `${quiz.title} Results`,
+                    "options": {
+                        "tag": quiz.tag,
+                        "body": body,
+                        "data": {
+                            "onTap": onTap
+                        },
+                        "icon": quiz.icon
+                    },
+                    "actionCommands": [
+                        {
+                            "label": "web-link",
+                            "commands": [
+                                {
+                                    "command": "browser.openURL",
+                                    "options": {
+                                        // "url": `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURI(`https://twitter.com/share?url=${config.mobileLabURL}&text=I got ${quiz.user.correct.length}/${quiz.questions.length} correct on ${quiz.title};end`)}`
+                                        "url": `https://twitter.com/share?url=${config.mobileLabURL}&text=${encodeURI(`I got ${quiz.user.correct.length}/${quiz.questions.length} correct on ${quiz.title}`)}`
+                                    }
+                                }
+                            ],
+                            "template": {
+                                "title": "Tweet"
+                            }
+                        },
+                        {
+                            "label": "web-link",
+                            "commands": [
+                                {
+                                    "command": "chains.notificationAtIndex",
+                                    "options": {
+                                        "chain": quiz.tag,
+                                        "index": 1
+                                    }
+                                }
+                            ],
+                            "template": {
+                                "title": "Retake quiz"
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+
     prepareResultsChain: function(quiz) {
         var chainResponse = {};
 
