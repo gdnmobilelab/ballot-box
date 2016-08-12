@@ -83,6 +83,34 @@ var QuizResponseService = {
                 onTap = onTap.concat(quiz.on_tap);
             }
 
+            var actionCommands = [];
+
+            if (response.response_action_button_one_commands) {
+                actionCommands.push(
+                    {
+                        label: "web-link",
+                        commands: response.response_action_button_one_commands,
+                        template: {
+                            title: response.response_action_button_one_text,
+                            icon: response.response_action_button_one_icon
+                        }
+                    }
+                )
+            }
+
+            if (response.response_action_button_two_commands) {
+                actionCommands.push(
+                    {
+                        label: "web-link",
+                        commands: response.response_action_button_two_commands,
+                        template: {
+                            title: response.response_action_button_two_text,
+                            icon: response.response_action_button_two_icon
+                        }
+                    }
+                )
+            }
+
             var body = `Your score was ${response.number_answered_correctly}/${quiz.questions.length}.\n\n${response.response_body}`,
                 title = response.response_title || `${quiz.title}`;
             return {
@@ -91,47 +119,11 @@ var QuizResponseService = {
                         tag: quiz.tag,
                         body: body,
                         data: {
-                            onTap: onTap
+                            onTap: response.response_on_tap
                         },
                         icon: quiz.icon
                     },
-                    actionCommands: [
-                        {
-                            label: "web-link",
-                            commands: [
-                                {
-                                    command: "browser.openURL",
-                                    options: {
-                                        // "url": `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURI(`https://twitter.com/share?url=${config.mobileLabURL}&text=I got ${quiz.user.correct.length}/${quiz.questions.length} correct on ${quiz.title};end`)}`
-                                        "url": `https://twitter.com/share?url=https://www.gdnmobilelab.com/olympics&text=${encodeURI(`I got ${response.number_answered_correctly}/${quiz.questions.length} correct on the ${quiz.social_title} from @gdnmobilelab`)}`
-                                    }
-                                },
-                                {
-                                    "command": "notification.close"
-                                }
-                            ],
-                            template: {
-                                title: "Tweet"
-                            }
-                        },
-                        {
-                            label: "web-link",
-                            commands: [
-                                {
-                                    command: "browser.openURL",
-                                    options: {
-                                        url: quiz.quiz_url
-                                    }
-                                },
-                                {
-                                    command: "notification.close"
-                                }
-                            ],
-                            template: {
-                                title: "Take Full Quiz"
-                            }
-                        }
-                    ]
+                    actionCommands: actionCommands
                 }
         });
 
@@ -143,7 +135,7 @@ var QuizResponseService = {
             cachedQuiz = cache.get(quiz.id),
             questions = quiz.questions;
 
-        if (cachedQuiz) {
+        if (process.env.NODE_ENV === 'production' && cachedQuiz) {
             return cachedQuiz;
         }
 
@@ -248,6 +240,7 @@ var QuizResponseService = {
                                 },
                                 actionCommands: [nextQuestionActions]
                             },
+                            "index": !last ? questionIndex + 2 : null,
                             "correctAnswer": answer.correct_answer,
                         }
                     };

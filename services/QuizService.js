@@ -30,7 +30,7 @@ var QuizService = {
     getQuizResults: function(user, quizId) {
         var quizResults = cache.get(`quiz-results-${quizId}`);
 
-        if (quizResults) {
+        if (process.env.NODE_ENV === 'production' && quizResults) {
             return Promise.resolve(quizResults)
         } else {
             return QuizDAO.getQuizResults(user, quizId)
