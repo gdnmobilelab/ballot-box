@@ -15,7 +15,7 @@ var QuizResponseService = {
             onTap = onTap.concat(quiz.on_tap);
         }
 
-        var body = `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n\n${quiz.responses[quiz.user.correct.length]}`;
+        var body = `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n\n${quiz.responses[quiz.user.correct.length].body}`;
 
         return [
             {
@@ -72,7 +72,7 @@ var QuizResponseService = {
 
         chainResponse.chain = `${quiz.tag}-results`;
 
-        chainResponse.values = quiz.responses.map((response) => {
+        chainResponse.values = quiz.responses.sort((a, b) => a.number_answered_correctly - b.number_answered_correctly).map((response) => {
             var onTap = [
                 {
                     "command": "notification.close"
