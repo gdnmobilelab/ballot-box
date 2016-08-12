@@ -217,6 +217,13 @@ var QuizResponseService = {
                         }
                     };
 
+                var answerText;
+                if (answer.answer_text) {
+                    answerText = answer.answer_text;
+                } else {
+                    answerText = answer.correct_answer ? 'Correct' : 'Incorrect';
+                }
+
                 var correctOrIncorrect = answer.correct_answer ? 'CORRECT 😀' : 'INCORRECT 🙁',
                     answerQuestion =  {
                         "command": "quiz.answerQuestion",
@@ -225,7 +232,9 @@ var QuizResponseService = {
                             "quizId": quiz.id,
                             "questionId": question.id,
                             "answerId": answer.id,
-                            "nextText": "Results",
+                            "nextText": !last ? 'Next Question' : 'Get Results',
+                            "answerBody": answerText,
+                            "answerTitle": `${title}: ${correctOrIncorrect}`,
                             "trueOrFalse": answerText,
                             "showNotification": {
                                 title: `${title}: ${correctOrIncorrect}`,
@@ -239,7 +248,7 @@ var QuizResponseService = {
                                 },
                                 actionCommands: [nextQuestionActions]
                             },
-                            "trueOrFalse": answer.correct_answer,
+                            "correctAnswer": answer.correct_answer,
                         }
                     };
 
