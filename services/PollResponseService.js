@@ -74,57 +74,63 @@ var PollResponseService = {
         if (answers.length < 3) {
             var subscribeAndCloseCommand = [
                 {
-                    "command": "pushy.subscribeToTopic",
-                    "options": {
-                        "topic": util.topicFromSNSARN(poll.sns_topic)
-                    }
-                },
-                {
                     "command": "notification.close"
                 }
             ];
 
-            chainResponse.values = [{
-                title: poll.title,
-                notificationTemplate: {
-                    body: poll.question,
-                    tag: poll.tag,
-                    icon: poll.icon,
-                    data: {}
-                },
-                actions: [
-                    {
-                        "label": "web-link",
-                        "commands": [
-                            {
-                                "command": "poll.castVote",
-                                "options": {
-                                    "pollId": poll.id,
-                                    "answerId": answers[0].id
-                                }
-                            }
-                        ].concat(subscribeAndCloseCommand),
-                        "template": {
-                            "title": answers[0].answer_name
+            if (poll.sns_topic) {
+                subscribeAndCloseCommand.push({
+                    "command": "pushy.subscribeToTopic",
+                    "options": {
+                        "topic": util.topicFromSNSARN(poll.sns_topic)
+                    }
+                });
+            }
+
+            chainResponse = {
+                command: "notification.show",
+                options: {
+                    title: poll.title,
+                    options: {
+                        body: poll.question,
+                        tag: poll.tag,
+                        icon: poll.icon,
+                        data: {
+                            onTap: poll.on_tap || null
                         }
                     },
-                    {
-                        "label": "web-link",
-                        "commands": [
-                            {
-                                "command": "poll.castVote",
-                                "options": {
-                                    "pollId": poll.id,
-                                    "answerId": answers[1].id
+                    actionCommands: [
+                        {
+                            "commands": [
+                                {
+                                    "command": "poll.castVote",
+                                    "options": {
+                                        "pollId": poll.id,
+                                        "answerId": answers[0].id
+                                    }
                                 }
+                            ].concat(subscribeAndCloseCommand),
+                            "template": {
+                                "title": answers[0].answer_name
                             }
-                        ].concat(subscribeAndCloseCommand),
-                        "template": {
-                            "title": answers[1].answer_name
-                        }
-                    },
-                ]
-            }];
+                        },
+                        {
+                            "commands": [
+                                {
+                                    "command": "poll.castVote",
+                                    "options": {
+                                        "pollId": poll.id,
+                                        "answerId": answers[1].id
+                                    }
+                                }
+                            ].concat(subscribeAndCloseCommand),
+                            "template": {
+                                "title": answers[1].answer_name
+                            }
+                        },
+                    ]
+                }
+            }
         } else {
             chainResponse.values = answers.map((answer, index) => {
                 var commands = [];
@@ -193,7 +199,7 @@ var PollResponseService = {
             });
         }
 
-        cache.put(answersKey, [chainResponse]);
+        //cache.put(answersKey, [chainResponse]);
 
         return [chainResponse];
     }

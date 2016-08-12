@@ -64,6 +64,10 @@ var PollDAO = {
                 //p_GetPollResults has two result sets
                 //Result Set 1: Contains the results of the poll (answers and vote counts)
                 //Result Set 2: Contains information about the poll (name, question, responses)
+
+                var poll = results[0][1][0];
+
+                poll.on_tap = poll.on_tap ? JSON.parse(poll.on_tap) : null;
                 return {
                     results: results[0][0],
                     poll: results[0][1][0]
@@ -80,6 +84,9 @@ var PollDAO = {
     getPollWithAnswers: function(pollId) {
         return db.query('call p_GetPollWithAnswers(?)', [pollId])
             .then(function(results) {
+                var poll = results[0][0][0];
+
+                poll.on_tap = poll.on_tap ? JSON.parse(poll.on_tap) : null;
                 //p_GetPollWithAnswers has two result sets
                 //Result Set 1: The poll
                 //Result Set 2: The answers of the poll

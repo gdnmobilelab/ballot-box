@@ -4,67 +4,75 @@ var cache = require('memory-cache');
 var config = require('../config');
 
 var QuizResponseService = {
-    prepareQuizResponse: function (quiz) {
-        var onTap = [
-            {
-                "command": "notification.close"
+    prepareResultsChain: function(quiz) {
+        var chainResponse = {};
+
+        chainResponse.chain = `${quiz.tag}-results`;
+
+        chainResponse.values = quiz.responses.map((response) => {
+            var onTap = [
+                {
+                    "command": "notification.close"
+                }
+            ];
+
+            if (quiz.on_tap) {
+                onTap = onTap.concat(quiz.on_tap);
             }
-        ];
 
-        if (quiz.on_tap) {
-            onTap = onTap.concat(quiz.on_tap);
-        }
-
-        var body = `You scored ${quiz.user.correct.length}/${quiz.questions.length}\n\n${quiz.responses[quiz.user.correct.length]}`;
-
-        return [
-            {
-                "command": "notification.show",
-                "options": {
-                    "title": `${quiz.title} Results`,
-                    "options": {
-                        "tag": quiz.tag,
-                        "body": body,
-                        "data": {
-                            "onTap": onTap
+            var body = `Your score was ${response.number_answered_correctly}/${quiz.questions.length}.\n\n${response.response_body}`,
+                title = response.response_title || `${quiz.title}`;
+            return {
+                    title: title,
+                    options: {
+                        tag: quiz.tag,
+                        body: body,
+                        data: {
+                            onTap: onTap
                         },
-                        "icon": quiz.icon
+                        icon: quiz.icon
                     },
-                    "actionCommands": [
+                    actionCommands: [
                         {
-                            "label": "web-link",
-                            "commands": [
+                            label: "web-link",
+                            commands: [
                                 {
-                                    "command": "browser.openURL",
-                                    "options": {
+                                    command: "browser.openURL",
+                                    options: {
                                         // "url": `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURI(`https://twitter.com/share?url=${config.mobileLabURL}&text=I got ${quiz.user.correct.length}/${quiz.questions.length} correct on ${quiz.title};end`)}`
-                                        "url": `https://twitter.com/share?url=${config.mobileLabURL}&text=${encodeURI(`I got ${quiz.user.correct.length}/${quiz.questions.length} correct on ${quiz.title}`)}`
+                                        "url": `https://twitter.com/share?url=https://www.gdnmobilelab.com/olympics&text=${encodeURI(`I got ${response.number_answered_correctly}/${quiz.questions.length} correct on the ${quiz.social_title} from @gdnmobilelab`)}`
                                     }
+                                },
+                                {
+                                    "command": "notification.close"
                                 }
                             ],
-                            "template": {
-                                "title": "Tweet"
+                            template: {
+                                title: "Tweet"
                             }
                         },
                         {
-                            "label": "web-link",
-                            "commands": [
+                            label: "web-link",
+                            commands: [
                                 {
-                                    "command": "chains.notificationAtIndex",
-                                    "options": {
-                                        "chain": quiz.tag,
-                                        "index": 1
+                                    command: "browser.openURL",
+                                    options: {
+                                        url: quiz.quiz_url
                                     }
+                                },
+                                {
+                                    command: "notification.close"
                                 }
                             ],
-                            "template": {
-                                "title": "Retake quiz"
+                            template: {
+                                title: "Take Full Quiz"
                             }
                         }
                     ]
                 }
-            }
-        ]
+        });
+
+        return chainResponse
     },
 
     prepareChainResponse: function(quiz) {
@@ -86,7 +94,8 @@ var QuizResponseService = {
                     tag: quiz.tag,
                     icon: quiz.icon,
                     data: {
-                        notificationID: quiz.tag
+                        notificationID: quiz.tag,
+                        onTap: quiz.on_tap
                     }
                 },
                 actions: [
@@ -102,54 +111,73 @@ var QuizResponseService = {
                             }
                         ],
                         "template": {
-                            "title": "Start Quiz ➡️"
+                            "title": "⏩ Start Quiz"
                         }
-                    },
-                    // {
-                    //     "label": "web-link",
-                    //     "commands": [
-                    //         {
-                    //             "command": "notification.close"
-                    //         }
-                    //     ],
-                    //     "template": {
-                    //         "title": "Close"
-                    //     }
-                    // }
+                    }
                 ]
             }
         ];
 
         chainResponse.values = chainResponse.values.concat(questions.map((question, questionIndex) => {
-                var answers = question.answers;
-                last = questionIndex === questions.length - 1;
+                var answers = question.answers,
+                    last = questionIndex === questions.length - 1,
+                    title = `Question ${questionIndex + 1}/${questions.length}`;
 
-            var actions = answers.map((answer) => {
-                var commands = [],
-                    answerText;
+            var actions = answers.map((answer, index) => {
+                var commands = [];
 
-                if (answer.answer_text) {
-                    answerText = answer.answer_text;
-                } else {
-                    answerText = answer.correct_answer ? 'Correct' : 'Incorrect';
-                }
-
-                var answerQuestion =  {
-                    "command": "quiz.answerQuestion",
+                var nextQuestionCommands = {
+                    "command": "chains.notificationAtIndex",
                     "options": {
                         "chain": quiz.tag,
-                        "quizId": quiz.id,
-                        "questionId": question.id,
-                        "answerId": answer.id,
-                        "nextText": "Results",
-                        "trueOrFalse": answerText
+                        "index": questionIndex + 2
                     }
                 };
 
-                if (!last) {
-                    answerQuestion.options.nextText = 'Next question';
-                    answerQuestion.options.index = questionIndex + 2;
+                if (last) {
+                    nextQuestionCommands = {
+                        "command": "quiz.submitAnswers",
+                        "options": {
+                            "quizId": quiz.id,
+                            "chain": `${quiz.tag}-results`
+                        }
+                    }
                 }
+
+                var nextQuestionActions = {
+                        "label": "web-link",
+                        "commands": [
+                            nextQuestionCommands
+                        ],
+                        "template": {
+                            "title": !last ? 'Next Question' : 'Get Results'
+                        }
+                    };
+
+                var correctOrIncorrect = answer.correct_answer ? 'CORRECT 😀' : 'INCORRECT 🙁',
+                    answerQuestion =  {
+                        "command": "quiz.answerQuestion",
+                        "options": {
+                            "chain": quiz.tag,
+                            "quizId": quiz.id,
+                            "questionId": question.id,
+                            "answerId": answer.id,
+                            "showNotification": {
+                                title: `${title}: ${correctOrIncorrect}`,
+                                options: {
+                                    body: answer.answer_text,
+                                    tag: quiz.tag,
+                                    icon: question.icon || quiz.icon,
+                                    data: {
+                                        onTap: quiz.on_tap
+                                    }
+                                },
+                                actionCommands: [nextQuestionActions]
+                            },
+                            "trueOrFalse": answer.correct_answer,
+                        }
+                    };
+
 
                 //Add the cast vote and close actions
                 commands = commands.concat([
@@ -166,21 +194,23 @@ var QuizResponseService = {
             });
 
             return {
-                title: `Question #${questionIndex + 1}`,
+                title: title,
                 notificationTemplate: {
                     body: question.question,
                     tag: quiz.tag,
                     icon: question.icon || quiz.icon,
-                    data: {}
+                    data: {
+                        onTap: quiz.on_tap
+                    }
                 },
                 actions: actions
             }
-
         }));
 
-        cache.put(quiz.id, [chainResponse], 60 * 5 * 1000);
+        var resp = [chainResponse, this.prepareResultsChain(quiz)];
+        cache.put(quiz.id, resp, 60 * 5 * 1000);
 
-        return [chainResponse];
+        return resp;
     }
 };
 

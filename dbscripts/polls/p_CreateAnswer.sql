@@ -16,7 +16,7 @@ DELIMITER $$
                 poll_id = p_poll_id
             where id = p_id;
         ELSE
-            insert into poll_answers(id, answer_name, poll_id) values (id, p_answer_name, p_poll_id);
+            insert into poll_answers(id, answer_name, poll_id) values (p_id, p_answer_name, p_poll_id);
         END IF;
 
         select LAST_INSERT_ID() `id`;

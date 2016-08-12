@@ -18,15 +18,18 @@ router.get('/:quizId/chain', function(req, res, next) {
             return OK(res, chain);
         })
         .catch((err) => {
+            console.log(err);
             BAD_REQUEST(res, err);
         });
 });
 
+router.post('/:quizId/submit', APIKeyFilter, function(req, res, next) {
+    QuizService.submitAnswers(req.body.answers, req.body.user);
+    return OK(res, 'Ok');
+});
+
 router.post('/:quizId/submitAnswers', APIKeyFilter, function(req, res, next) {
-    QuizService.submitAnswers(req.body.answers, req.body.user)
-        .then((result) => {
-            return QuizService.getQuizResults(req.body.user, req.params.quizId, result.sessionId);
-        })
+    QuizService.getQuizResults(req.body.user, req.params.quizId)
         .then((quizResults) => {
             var answers = quizResults.answers.reduce((coll, answer) => {
                 if (answer.correct_answer) {
@@ -60,8 +63,10 @@ router.post('/:quizId/submitAnswers', APIKeyFilter, function(req, res, next) {
         })
         .catch((err) => {
             console.log(err);
-            return BAD_REQUEST(res, err);
+            return BAD_REQUEST(res, 'Hrm. There was an error with your request.');
         });
+
+        QuizService.submitAnswers(req.body.answers, req.body.user);
 });
 
 

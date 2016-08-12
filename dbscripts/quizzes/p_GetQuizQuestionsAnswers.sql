@@ -16,6 +16,10 @@ DELIMITER $$
         from quiz_answers qa
         join quiz_questions qq on qq.id = qa.quiz_question_id;
 
+        -- Get the quiz responses
+        select * from quiz_result_responses
+            where quiz_id = p_id;
+
 
     END $$
 DELIMITER ;

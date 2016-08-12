@@ -14,7 +14,7 @@ DELIMITER $$
         IF v_quiz_question_exists_id IS NOT NULL THEN
             update quiz_questions set
                 question = p_question,
-                icon = p_alert_icon,
+                icon = p_icon,
                 quiz_id = p_quiz_id
             where id = p_id;
         ELSE

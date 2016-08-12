@@ -7,7 +7,9 @@ DELIMITER $$
         IN p_is_closed BOOLEAN,
         IN p_tag VARCHAR(300),
         IN p_sns_topic VARCHAR(500),
-        IN on_tap JSON
+        IN p_on_tap JSON,
+        IN p_quiz_url VARCHAR(2500),
+        IN p_social_title VARCHAR(500)
     )
 
     BEGIN
@@ -23,7 +25,9 @@ DELIMITER $$
                 is_closed = p_is_closed,
                 tag = p_tag,
                 sns_topic = p_sns_topic,
-                on_tap = p_on_tap
+                on_tap = p_on_tap,
+                quiz_url = p_quiz_url,
+                social_title = p_social_title
             where id = p_id;
         ELSE
             insert into quizzes(
@@ -33,7 +37,10 @@ DELIMITER $$
                 icon,
                 is_closed,
                 tag,
-                sns_topic
+                sns_topic,
+                on_tap,
+                quiz_url,
+                social_title
             )
             values (
                 p_id,
@@ -42,7 +49,10 @@ DELIMITER $$
                 p_icon,
                 p_is_closed,
                 p_tag,
-                p_sns_topic
+                p_sns_topic,
+                p_on_tap,
+                p_quiz_url,
+                p_social_title
             );
         END IF;
 

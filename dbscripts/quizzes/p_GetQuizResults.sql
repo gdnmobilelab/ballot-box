@@ -7,7 +7,7 @@ DELIMITER $$
     BEGIN
         declare v_user_id BIGINT;
 
-        drop table if exists total_correct_answers;
+--        drop table if exists total_correct_answers;
 
         select id from users u where u.user_id = p_user_id into v_user_id;
 

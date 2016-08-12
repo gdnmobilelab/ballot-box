@@ -50,6 +50,15 @@ var QuizDAO = {
         return db.query('call p_GetQuizQuestionsAndAnswers(?)', [quizId])
             .then(function(results) {
                 var quiz = results[0][0][0];
+                var responses = results[0][3];
+
+                responses = responses.map((response) => {
+                    response.response_on_tap = response.response_on_tap ? JSON.parse(response.response_on_tap) : null;
+                    response.response_action_button_one_commands = response.response_action_button_one_commands ? JSON.parse(response.response_action_button_one_commands) : null;
+                    response.response_action_button_two_commands = response.response_action_button_two_commands ? JSON.parse(response.response_action_button_two_commands) : null;
+
+                    return response;
+                });
 
                 quiz.on_tap = quiz.on_tap ? JSON.parse(quiz.on_tap) : null;
                 //p_GetQuizQuestionsAnswers has three result sets
@@ -59,7 +68,8 @@ var QuizDAO = {
                 return {
                     quiz: quiz,
                     questions: results[0][1],
-                    answers: results[0][2]
+                    answers: results[0][2],
+                    responses: responses
                 };
             });
     },
@@ -121,18 +131,27 @@ var QuizDAO = {
         });
     },
 
-    getQuizResults: function(user, quizId, sessionId) {
+    getQuizResults: function(user, quizId) {
         return db.query('call p_GetQuizResults(?, ?)', [user.id, quizId])
             .then((results) => {
-                var quiz = results[0][0][0];
+                var quiz = results[0][0][0],
+                    responses = results[0][3];
 
                 quiz.on_tap = quiz.on_tap ? JSON.parse(quiz.on_tap) : null;
+
+                responses = responses.map((response) => {
+                    response.response_on_tap = response.response_on_tap ? JSON.parse(response.response_on_tap) : null;
+                    response.response_action_button_one_commands = response.response_action_button_one_commands ? JSON.parse(response.response_action_button_one_commands) : null;
+                    response.response_action_button_two_commands = response.response_action_button_two_commands ? JSON.parse(response.response_action_button_two_commands) : null;
+
+                    return response;
+                });
 
                 return {
                     quiz: quiz,
                     questions: results[0][1],
                     answers: results[0][2],
-                    responses: results[0][3]
+                    responses: responses
                     // quiz_results: results[0][3]
                 }
             })

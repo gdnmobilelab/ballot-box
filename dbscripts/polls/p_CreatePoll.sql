@@ -52,7 +52,7 @@ DELIMITER $$
                 p_sns_topic,
                 p_next_question_text,
                 p_next_question_icon,
-                on_tap
+                p_on_tap
             );
         END IF;
 

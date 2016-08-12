@@ -100,6 +100,8 @@ create table if not exists quizzes (
     tag VARCHAR(300),
     sns_topic VARCHAR(500),
     on_tap JSON,
+    quiz_url VARCHAR(2500),
+    social_title VARCHAR(500),
     created_on TIMESTAMP DEFAULT now(),
     modified_on TIMESTAMP DEFAULT now() ON UPDATE now()
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -140,7 +142,15 @@ create table if not exists quiz_users_answers (
 create table if not exists quiz_result_responses (
     quiz_id VARCHAR(36),
     number_answered_correctly INT NOT NULL,
-    response VARCHAR(500) NOT NULL
+    response_title VARCHAR(250) NOT NULL,
+    response_body VARCHAR(500) NOT NULL,
+    response_on_tap JSON,
+    response_action_button_one_commands JSON,
+    response_action_button_one_text VARCHAR(100),
+    response_action_button_one_icon VARCHAR(250),
+    response_action_button_two_commands JSON,
+    response_action_button_two_text VARCHAR(100),
+    response_action_button_two_icon VARCHAR(250),
     FOREIGN KEY FK_quiz_id (quiz_id) REFERENCES quizzes(id),
     PRIMARY KEY (quiz_id, number_answered_correctly)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
